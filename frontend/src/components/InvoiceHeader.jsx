@@ -7,6 +7,7 @@ const InvoiceHeader = ({
   setDueDate,
   invoiceNumber,
   setInvoiceNumber,
+  labels,
 }) => {
   const [logo, setLogo] = useState(null);
   const [error, setError] = useState("");
@@ -65,7 +66,7 @@ const InvoiceHeader = ({
                 className="w-full h-full object-contain"
               />
             ) : (
-              <span className="text-blue-500 text-sm">Upload PNG Logo</span>
+              <span className="text-blue-500 text-sm"><label className="mb-1 font-medium">{labels.uploadLogo}</label></span>
             )}
           </div>
           <input
@@ -82,7 +83,7 @@ const InvoiceHeader = ({
       {/* Metadata Inputs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-700">
         <div className="flex flex-col">
-          <label className="mb-1 font-medium">Invoice Date</label>
+          <label className="mb-1 font-medium">{labels.invoiceDate}</label>
           <input
             type="date"
             value={invoiceDate}
@@ -92,7 +93,7 @@ const InvoiceHeader = ({
         </div>
 
         <div className="flex flex-col">
-          <label className="mb-1 font-medium">Due Date</label>
+          <label className="mb-1 font-medium">{labels.dueDate}</label>
           <input
             type="date"
             value={dueDate}
@@ -102,7 +103,7 @@ const InvoiceHeader = ({
         </div>
 
         <div className="flex flex-col">
-          <label className="mb-1 font-medium">Invoice Number</label>
+          <label className="mb-1 font-medium">{labels.invoiceNumber}</label>
           <input
             type="text"
             value={invoiceNumber}

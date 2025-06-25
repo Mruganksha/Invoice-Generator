@@ -15,6 +15,7 @@ const BillingSection = ({
   setBillTo,
   billFrom,
   setBillFrom,
+  labels,
 }) => {
    console.log("BillTo State:", billTo.state);
   console.log("BillFrom State:", billFrom.state);
@@ -23,11 +24,11 @@ const BillingSection = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Bill To */}
         <div className="bg-white rounded-lg shadow p-6 border border-blue-100 hover:shadow-lg transition-shadow">
-          <h2 className="text-xl font-semibold text-blue-700 mb-4">Bill To</h2>
+          <h2 className="text-xl font-semibold text-blue-700 mb-4">{labels.billTo}</h2>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Client or Company Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{labels.clientName}</label>
               <input
                 type="text"
                 value={billTo.name}
@@ -38,7 +39,7 @@ const BillingSection = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{labels.email}</label>
               <input
                 type="email"
                 value={billTo.email}
@@ -49,7 +50,7 @@ const BillingSection = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Billing Address</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{labels.address}</label>
               <textarea
                 rows="3"
                 value={billTo.address}
@@ -61,7 +62,7 @@ const BillingSection = ({
 
             {/* Pincode */}
 <div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
+  <label className="block text-sm font-medium text-gray-700 mb-1">{labels.pincode}</label>
   <input
     type="text"
     maxLength={6}
@@ -74,7 +75,7 @@ const BillingSection = ({
 
 {/* State */}
 <div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+  <label className="block text-sm font-medium text-gray-700 mb-1">{labels.state}</label>
   <select
     value={billTo.state || ""}
     onChange={(e) => setBillTo({ ...billTo, state: e.target.value })}
@@ -93,11 +94,11 @@ const BillingSection = ({
 
         {/* Bill From */}
         <div className="bg-white rounded-lg shadow  pl-8 pr-8 pt-4 pb-4 border border-green-100 hover:shadow-lg transition-shadow">
-          <h2 className="text-xl font-semibold text-sky-700 mb-4">Bill From</h2>
+          <h2 className="text-xl font-semibold text-sky-700 mb-4">{labels.billFrom}</h2>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Your Name or Company</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{labels.yourName}</label>
               <input
                 type="text"
                 value={billFrom.name}

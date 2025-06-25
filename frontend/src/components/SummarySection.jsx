@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgst = 0, igst = 0 }) => {
+const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgst = 0, igst = 0, labels }) => {
   const [showDiscount, setShowDiscount] = useState(false);
   const [showShipping, setShowShipping] = useState(false);
   const [discount, setDiscount] = useState(0);
@@ -13,14 +13,14 @@ const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgs
     <div className="h-full w-full border border-gray-200 rounded-xl shadow-lg p-8 flex flex-col justify-between bg-gradient-to-br from-white to-gray-50">
       <div className="space-y-6">
         <h2 className="text-2xl font-semibold text-blue-800 border-b pb-4">
-           Invoice Summary
+           {labels.invoiceSummary}
         </h2>
 
         <div className="space-y-5 text-sm text-gray-700">
-          <SummaryRow label="Subtotal" value={`₹${subtotal.toFixed(2)}`} />
+          <SummaryRow label={labels.subtotal} value={`₹${subtotal.toFixed(2)}`} />
 
           <SummaryRow
-            label="Tax (%)"
+            label={labels.tax}
             input={
               <input
                 type="number"
@@ -45,7 +45,7 @@ const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgs
           {/* Discount Section */}
           {showDiscount ? (
             <SummaryRow
-              label="Discount (₹)"
+              label={labels.discount}
               input={
                 <div className="flex items-center space-x-2">
                   <input
@@ -73,7 +73,7 @@ const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgs
           {/* Shipping Section */}
           {showShipping ? (
             <SummaryRow
-              label="Shipping (₹)"
+              label={labels.shipping}
               input={
                 <div className="flex items-center space-x-2">
                   <input
@@ -102,10 +102,10 @@ const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgs
           {!showDiscount || !showShipping ? (
             <div className="flex gap-4">
               {!showDiscount && (
-                <AddOptionButton onClick={() => setShowDiscount(true)} label="+ Add Discount" />
+                <AddOptionButton onClick={() => setShowDiscount(true)} label={labels.addDiscount} />
               )}
               {!showShipping && (
-                <AddOptionButton onClick={() => setShowShipping(true)} label="+ Add Shipping" />
+                <AddOptionButton onClick={() => setShowShipping(true)} label={labels.addShipping} />
               )}
             </div>
           ) : null}
@@ -114,7 +114,7 @@ const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgs
 
       {/* Total Section */}
       <div className="pt-6 mt-6 border-t border-gray-300 flex justify-between items-center text-lg font-semibold text-gray-900">
-        <span>Total:</span>
+        <span>{labels.total}</span>
         <span>₹{total.toFixed(2)}</span>
       </div>
     </div>

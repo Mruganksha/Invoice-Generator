@@ -1,7 +1,7 @@
 import React from "react";
 import { Trash2 } from "lucide-react";
 
-const ItemTable = ({ items, setItems }) => {
+const ItemTable = ({ items, setItems, labels }) => {
   const handleChange = (index, field, value) => {
     const updated = [...items];
     updated[index][field] = field === "name" ? value : parseFloat(value) || 0;
@@ -23,17 +23,17 @@ const ItemTable = ({ items, setItems }) => {
 
   return (
     <div className="rounded-xl pl-8 pr-8 pt-4 pb-4">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">Invoice Items</h2>
+      <h2 className="text-2xl font-semibold text-gray-800 mb-6">{labels.invoiceItems}</h2>
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm text-gray-800 border border-gray-200 rounded-md">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs border-b">
             <tr>
-              <th className="text-left py-3 px-4">Item</th>
-              <th className="text-center py-3 px-2">Qty</th>
-              <th className="text-center py-3 px-2">Rate</th>
-              <th className="text-center py-3 px-2">Total</th>
-              <th className="text-center py-3 px-2">Action</th>
+              <th className="text-left py-3 px-4">{labels.item}</th>
+              <th className="text-center py-3 px-2">{labels.quantity}</th>
+              <th className="text-center py-3 px-2">{labels.rate}</th>
+              <th className="text-center py-3 px-2">{labels.total}</th>
+              <th className="text-center py-3 px-2">{labels.action}</th>
             </tr>
           </thead>
           <tbody>
@@ -48,7 +48,7 @@ const ItemTable = ({ items, setItems }) => {
                     value={row.name}
                     onChange={(e) => handleChange(index, "name", e.target.value)}
                     className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Item description"
+                    placeholder={labels.itemPlaceholder}
                   />
                 </td>
                 <td className="text-center py-3 px-2">
@@ -76,7 +76,7 @@ const ItemTable = ({ items, setItems }) => {
                   <button
                     onClick={() => handleDelete(index)}
                     className="text-red-500 hover:text-red-700 transition"
-                    title="Remove item"
+                    title="{labels.removeItem}"
                   >
                     <Trash2 size={18} />
                   </button>
@@ -92,7 +92,7 @@ const ItemTable = ({ items, setItems }) => {
           onClick={handleAddItem}
           className="inline-block px-5 py-2 hover:bg-sky-600 text-white  rounded-md text-sm font-medium bg-sky-500 transition"
         >
-          + Add Item
+          {labels.addItem}
         </button>
       </div>
     </div>

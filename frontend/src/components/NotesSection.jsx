@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 
-const NotesSection = ({ notes, setNotes }) => {
+const NotesSection = ({ notes, setNotes, labels }) => {
   const [images, setImages] = useState([]);
   const fileInputRef = useRef(null);
 
@@ -22,7 +22,7 @@ const NotesSection = ({ notes, setNotes }) => {
       {/* Top section that grows */}
       <div className="flex flex-col gap-6 flex-grow">
         <h2 className="text-2xl font-semibold text-gray-800 border-b pb-4">
-           Notes 
+           {labels.notes}
         </h2>
 
         <textarea
@@ -30,7 +30,7 @@ const NotesSection = ({ notes, setNotes }) => {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           className="flex-grow w-full px-4 py-3 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400 resize-none"
-          placeholder="Add any notes, terms, or customer messages here..."
+          placeholder={labels.notesPlaceholder}
         />
 
         <div>
@@ -38,7 +38,7 @@ const NotesSection = ({ notes, setNotes }) => {
             onClick={() => fileInputRef.current.click()}
             className="px-5 py-2 bg-sky-500 text-white text-sm rounded-md font-medium hover:bg-sky-600 transition"
           >
-            + Upload Image
+            {labels.uploadImage}
           </button>
           <input
             type="file"
