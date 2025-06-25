@@ -21,3 +21,6 @@ mongoose
 
 const invoiceRoutes = require("./routes/invoices")
 app.use("/api/invoices", invoiceRoutes);
+
+const emailRoutes = require("./routes/email");
+app.use('/email', emailRoutes);

@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 
-const SummarySection = ({ subtotal, taxRate, setTaxRate }) => {
+const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgst = 0, igst = 0 }) => {
   const [showDiscount, setShowDiscount] = useState(false);
   const [showShipping, setShowShipping] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [shipping, setShipping] = useState(0);
 
-  const taxAmount = (subtotal * taxRate) / 100;
   const total =
-    subtotal - (showDiscount ? discount : 0) + taxAmount + (showShipping ? shipping : 0);
+    subtotal - (showDiscount ? discount : 0) + cgst + sgst + igst + (showShipping ? shipping : 0);
 
   return (
     <div className="h-full w-full border border-gray-200 rounded-xl shadow-lg p-8 flex flex-col justify-between bg-gradient-to-br from-white to-gray-50">
@@ -33,7 +32,15 @@ const SummarySection = ({ subtotal, taxRate, setTaxRate }) => {
             }
           />
 
-          <SummaryRow label="Tax Amount" value={`₹${taxAmount.toFixed(2)}`} />
+          {cgst > 0 && sgst > 0 ? (
+  <>
+    <SummaryRow label={`CGST (${(taxRate / 2).toFixed(1)}%)`} value={`₹${cgst.toFixed(2)}`} />
+    <SummaryRow label={`SGST (${(taxRate / 2).toFixed(1)}%)`} value={`₹${sgst.toFixed(2)}`} />
+  </>
+) : (
+  <SummaryRow label={`IGST (${taxRate}%)`} value={`₹${igst.toFixed(2)}`} />
+)}
+
 
           {/* Discount Section */}
           {showDiscount ? (

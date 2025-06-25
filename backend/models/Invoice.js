@@ -14,12 +14,16 @@ const invoiceSchema = new mongoose.Schema({
   billTo: {
     name: String,
     email: String,
-    address: String,
+    address: { type: String, required: true },
+    pincode: { type: String, required: true },
+    state: { type: String, required: true }
   },
   billFrom: {
     name: String,
     email: String,
-    address: String,
+    address: { type: String, required: true },
+    pincode: { type: String, required: true },
+    state: { type: String, required: true }
   },
   items: [itemSchema],
   currency: String,

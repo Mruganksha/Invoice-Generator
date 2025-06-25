@@ -1,11 +1,23 @@
 import React from "react";
 
+const indianStates = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
+  "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura",
+  "Uttar Pradesh", "Uttarakhand", "West Bengal"
+];
+
+
 const BillingSection = ({
   billTo,
   setBillTo,
   billFrom,
   setBillFrom,
 }) => {
+   console.log("BillTo State:", billTo.state);
+  console.log("BillFrom State:", billFrom.state);
   return (
     <div className=" p-8 rounded-xl  mb-8 ">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -46,6 +58,36 @@ const BillingSection = ({
                 className="w-full px-4 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+
+            {/* Pincode */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
+  <input
+    type="text"
+    maxLength={6}
+    value={billTo.pincode || ""}
+    onChange={(e) => setBillTo({ ...billTo, pincode: e.target.value })}
+    placeholder="400001"
+    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+</div>
+
+{/* State */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+  <select
+    value={billTo.state || ""}
+    onChange={(e) => setBillTo({ ...billTo, state: e.target.value })}
+    placeholder="Maharashtra"
+    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  >
+    <option value="">Select State</option>
+    {indianStates.map((st) => (
+      <option key={st} value={st}>{st}</option>
+    ))}
+  </select>
+</div>
+
           </div>
         </div>
 
@@ -86,6 +128,34 @@ const BillingSection = ({
                 className="w-full px-4 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
+            {/* Pincode */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
+  <input
+    type="text"
+    maxLength={6}
+    value={billFrom.pincode || ""}
+    onChange={(e) => setBillFrom({ ...billFrom, pincode: e.target.value })}
+    placeholder="110001"
+    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+  />
+</div>
+
+{/* State */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+  <select
+    value={billFrom.state || ""}
+    onChange={(e) => setBillFrom({ ...billFrom, state: e.target.value })}
+    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+  >
+    <option value="">Select State</option>
+    {indianStates.map((st) => (
+      <option key={st} value={st}>{st}</option>
+    ))}
+  </select>
+</div>
+
           </div>
         </div>
       </div>

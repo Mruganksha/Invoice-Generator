@@ -5,15 +5,15 @@ import ItemTable from "../components/ItemTable";
 import SummarySection from "../components/SummarySection";
 import NotesSection from "../components/NotesSection";
 import html2pdf from "html2pdf.js";
-
+import { createInvoice, sendInvoiceEmail } from "../services/api";
 
 
 const InvoiceForm = () => {
   const [invoiceDate, setInvoiceDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
-  const [billTo, setBillTo] = useState({ name: "", email: "", address: "" });
-  const [billFrom, setBillFrom] = useState({ name: "", email: "", address: "" });
+  const [billTo, setBillTo] = useState({ name: "", email: "", address: "", pincode: "", state: "" });
+  const [billFrom, setBillFrom] = useState({ name: "", email: "", address: "", pincode: "", state: "" });
   const [items, setItems] = useState([{ name: "", quantity: 1, rate: 0, total: 0 }]);
   const [taxRate, setTaxRate] = useState(18);
   const [notes, setNotes] = useState("");
@@ -22,6 +22,20 @@ const InvoiceForm = () => {
   const invoiceRef = useRef();
 
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+
+  const [cgst, setCgst] = useState(0);
+const [sgst, setSgst] = useState(0);
+const [igst, setIgst] = useState(0);
+
+ useEffect(() => {
+    const from = billFrom.state.trim().toLowerCase();
+    const to = billTo.state.trim().toLowerCase();
+    const same = from && to && from === to;
+    const taxAmount = subtotal * (taxRate / 100);
+    setCgst(same ? taxAmount / 2 : 0);
+    setSgst(same ? taxAmount / 2 : 0);
+    setIgst(same ? 0 : taxAmount);
+  }, [billFrom.state, billTo.state, subtotal, taxRate]);
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
@@ -38,12 +52,12 @@ const InvoiceForm = () => {
   const handleSavePDF = () => {
     
   // Validate required fields
-  if (!billFrom.name || !billFrom.email || !billFrom.address) {
+  if (!billFrom.name || !billFrom.email || !billFrom.address || !billFrom.pincode || !billFrom.state) {
     alert("Please fill in all 'Bill From' fields.");
     return;
   }
 
-  if (!billTo.name || !billTo.email || !billTo.address) {
+  if (!billTo.name || !billTo.email || !billTo.address || !billTo.pincode || !billTo.state) {
     alert("Please fill in all 'Bill To' fields.");
     return;
   }
@@ -88,6 +102,80 @@ const isFormValid =
     </html>
   `);
   previewWindow.document.close();
+};
+
+const handleSaveToBackend = async () => {
+  const invoiceData = {
+    invoiceNumber,
+    invoiceDate,
+    dueDate,
+    billFrom,
+    billTo,
+    items,
+    notes,
+    currency,
+    subtotal,
+    taxRate,
+    taxAmount: subtotal * (taxRate / 100),
+    total: subtotal + subtotal * (taxRate / 100),
+  };
+
+  try {
+    const response = await createInvoice(invoiceData);
+    alert("Invoice saved to backend successfully!");
+    console.log(response.data);
+  } catch (error) {
+    console.error("Error saving invoice:", error);
+    alert("Failed to save invoice to backend.");
+  }
+};
+
+const handleBackendPDFDownload = async () => {
+  if (!isFormValid) {
+    alert("Please fill all required fields before saving.");
+    return;
+  }
+
+  try {
+    const invoiceData = {
+      invoiceNumber,
+      invoiceDate,
+      dueDate,
+      billFrom,
+      billTo,
+      items,
+      notes,
+      currency,
+      subtotal,
+      taxRate,
+      taxAmount: subtotal * (taxRate / 100),
+      total: subtotal + subtotal * (taxRate / 100),
+    };
+
+    // 1. Save invoice to DB
+    const res = await createInvoice(invoiceData);
+    const invoiceId = res.invoice._id;
+
+    // 2. Fetch the PDF file from backend
+    const response = await fetch(`http://localhost:5000/api/invoices/pdf/${invoiceId}`);
+
+    if (!response.ok) throw new Error("Download failed");
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    // 3. Trigger download
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${invoiceNumber}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("PDF Download Error:", err);
+    alert("Failed to download PDF from backend.");
+  }
 };
 
   return (
@@ -135,17 +223,49 @@ const isFormValid =
       Preview
     </button>
     <button
-      onClick={handleSavePDF}
-       disabled={!isFormValid}
-      className={`bg-sky-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-sky-800 text-white transition  transition ${
+  onClick={handleBackendPDFDownload}
+  disabled={!isFormValid}
+  className={`bg-sky-600 text-white px-4 py-2 rounded-md text-sm font-medium transition ${
     isFormValid
-      ? "bg-sky-600 text-white hover:bg-sky-800"
-      : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
-    >
-      Save as PDF
-    </button>
+      ? "hover:bg-sky-800"
+      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+  }`}
+>
+  Save as PDF
+</button>
+
     <button
-      onClick={() => alert("Sending email...")}
+      onClick={async () => {
+  try {
+    const invoiceData = {
+      invoiceNumber,
+      invoiceDate,
+      dueDate,
+      billFrom,
+      billTo,
+      items,
+      notes,
+      currency,
+      subtotal,
+      taxRate,
+      taxAmount: subtotal * (taxRate / 100),
+      total: subtotal + subtotal * (taxRate / 100),
+    };
+
+    // Save invoice to DB and get _id
+    const res = await createInvoice(invoiceData);
+    const invoiceId = res.invoice._id;
+
+    //  send email using that ID
+    const emailRes = await sendInvoiceEmail(invoiceId);
+    alert(emailRes.data.message);
+  } catch (err) {
+    console.error("Email failed:", err);
+    alert("Failed to send invoice via email.");
+  }
+}}
+
+
       className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition"
     >
       Send Email
@@ -163,12 +283,14 @@ const isFormValid =
         setInvoiceNumber={setInvoiceNumber}
       />
 
+
       <BillingSection
-        billTo={billTo}
-        setBillTo={setBillTo}
-        billFrom={billFrom}
-        setBillFrom={setBillFrom}
-      />
+  billTo={billTo}
+  setBillTo={setBillTo}
+  billFrom={billFrom}
+  setBillFrom={setBillFrom}
+/>
+
 
       <ItemTable items={items} setItems={setItems} />
 
@@ -179,11 +301,15 @@ const isFormValid =
         </div>
         <div className="h-full">
           <SummarySection
-            subtotal={subtotal}
-            taxRate={taxRate}
-            setTaxRate={setTaxRate}
-            currency={currency}
-          />
+  subtotal={subtotal}
+  taxRate={taxRate}
+  setTaxRate={setTaxRate}
+  currency={currency}
+  cgst={cgst}
+  sgst={sgst}
+  igst={igst}
+/>
+
         </div>
       </div>
     </div>
