@@ -12,7 +12,7 @@ const ItemTable = ({ items, setItems, labels }) => {
   const handleAddItem = () => {
     setItems([
       ...items,
-      { name: "", quantity: 1, rate: "0", total: "0" }
+      { name: "", quantity: 1, rate: 0, total: 0 }
     ]);
   };
 
@@ -70,7 +70,8 @@ const ItemTable = ({ items, setItems, labels }) => {
                   />
                 </td>
                 <td className="text-center py-3 px-2 font-medium text-gray-700">
-                  {row.total.toFixed(2)}
+                  {Number(row.total).toFixed(2)}
+
                 </td>
                 <td className="text-center py-3 px-2">
                   <button

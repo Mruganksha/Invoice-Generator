@@ -8,33 +8,40 @@ const InvoiceHeader = ({
   invoiceNumber,
   setInvoiceNumber,
   labels,
+  logo,
+  setLogo, 
+  invoiceTitle,
+  setInvoiceTitle,
 }) => {
-  const [logo, setLogo] = useState(null);
+
   const [error, setError] = useState("");
-  const [invoiceTitle, setInvoiceTitle] = useState("INVOICE");
+ 
   const fileInputRef = useRef(null);
 
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+const handleLogoChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    if (file.type !== "image/png") {
-      setError("Only PNG images are allowed.");
-      return;
-    }
+  if (file.type !== "image/png") {
+    setError("Only PNG images are allowed.");
+    return;
+  }
 
-    if (file.size > 500 * 1024) {
-      setError("File size must be under 500KB.");
-      return;
-    }
+  if (file.size > 500 * 1024) {
+    setError("File size must be under 500KB.");
+    return;
+  }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setLogo(reader.result);
-      setError("");
-    };
-    reader.readAsDataURL(file);
+  const reader = new FileReader(); // ✅ This must come before reader.onloadend
+
+  reader.onloadend = () => {
+    setLogo(reader.result);
+    setError("");
   };
+
+  reader.readAsDataURL(file);
+};
+
 
   const handleClick = () => {
     fileInputRef.current.click();
@@ -51,6 +58,7 @@ const InvoiceHeader = ({
           onChange={(e) => setInvoiceTitle(e.target.value)}
           className="text-4xl font-bold tracking-tight text-blue-800 bg-transparent focus:outline-none border-b-2 border-blue-400 max-w-xs transition-all"
         />
+        
 
         {/* Logo Upload */}
         <div className="flex flex-col items-center space-y-2">
