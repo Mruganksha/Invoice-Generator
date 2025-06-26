@@ -93,8 +93,8 @@ const PDFPreview = ({ onClose, data }) => {
               <tr>
                 <th className="p-3 text-left">Description</th>
                 <th className="p-3 text-right">Qty</th>
-                <th className="p-3 text-right">Rate ({currency})</th> → Rate ({currencySymbol})
-                <th className="p-3 text-right">Amount ({currency})</th> → Amount ({currencySymbol})
+                <th className="p-3 text-right">Rate ({currency})</th>  
+                <th className="p-3 text-right">Amount ({currency})</th>  
               </tr>
             </thead>
             <tbody>
@@ -156,7 +156,7 @@ const PDFPreview = ({ onClose, data }) => {
         )}
 
         {/* Footer */}
-        <div className="border-t mt-8 pt-4 text-center text-xs text-gray-500">
+        <div className="border-t text-center text-xs text-gray-500">
           <p>Thank you for your business.</p>
           <p>Generated on: {new Date().toLocaleDateString()}</p>
         </div>

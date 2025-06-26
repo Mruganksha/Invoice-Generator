@@ -43,6 +43,17 @@ const InvoiceHeader = ({
     fileInputRef.current.click();
   };
 
+  const formatDateToDisplay = (isoDate) => {
+  if (!isoDate) return "";
+  const [year, month, day] = isoDate.split("-");
+  return `${day}-${month}-${year}`;
+};
+
+const parseDisplayToISO = (displayDate) => {
+  const [day, month, year] = displayDate.split("-");
+  return `${year}-${month}-${day}`;
+};
+
   return (
     <div className="pl-8 pr-8 pt-4 pb-4 rounded-xl">
       {/* Top Row: Invoice Title & Logo */}
@@ -88,23 +99,33 @@ const InvoiceHeader = ({
       {/* Metadata Inputs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-700">
         <div className="flex flex-col">
-          <label className="mb-1 font-medium">{labels.invoiceDate}</label>
-          <input
-            type="date"
-            value={invoiceDate}
-            onChange={(e) => setInvoiceDate(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+           <label className="mb-1 font-medium">{labels.invoiceDate}</label>
+  <input
+    type="date"
+    value={invoiceDate}
+    onChange={(e) => setInvoiceDate(e.target.value)}
+    className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  {invoiceDate && (
+    <span className="text-sm text-gray-500 mt-1">
+      {new Date(invoiceDate).toLocaleDateString("en-GB")}
+    </span>
+  )}
         </div>
 
         <div className="flex flex-col">
-          <label className="mb-1 font-medium">{labels.dueDate}</label>
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+           <label className="mb-1 font-medium">{labels.dueDate}</label>
+  <input
+    type="date"
+    value={dueDate}
+    onChange={(e) => setDueDate(e.target.value)}
+    className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  {dueDate && (
+    <span className="text-sm text-gray-500 mt-1">
+      {new Date(dueDate).toLocaleDateString("en-GB")}
+    </span>
+  )}
         </div>
 
         <div className="flex flex-col">
