@@ -193,8 +193,8 @@ const handleBackendPDFDownload = async () => {
     const res = await createInvoice(invoiceData);
     const invoiceId = res.invoice._id;
 
-    const response = await fetch(`http://localhost:5000/api/invoices/pdf/${invoiceId}`);
-
+     const baseUrl = import.meta.env.VITE_API_BASE_URL;
+   const response = await fetch(`${baseUrl}/api/invoices/pdf/${invoiceId}`);
     if (!response.ok) throw new Error("Download failed");
 
     const blob = await response.blob();
