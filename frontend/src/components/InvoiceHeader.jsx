@@ -7,11 +7,11 @@ const InvoiceHeader = ({
   setDueDate,
   invoiceNumber,
   setInvoiceNumber,
+  invoiceType,
   labels,
 }) => {
   const [logo, setLogo] = useState(null);
   const [error, setError] = useState("");
-  const [invoiceTitle, setInvoiceTitle] = useState("INVOICE");
   const fileInputRef = useRef(null);
 
   const handleLogoChange = (e) => {
@@ -30,7 +30,8 @@ const InvoiceHeader = ({
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      setLogo(reader.result);
+       const base64String = reader.result;
+    setLogo(base64String);
       setError("");
     };
     reader.readAsDataURL(file);
@@ -45,12 +46,10 @@ const InvoiceHeader = ({
       {/* Top Row: Invoice Title & Logo */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
         {/* Editable Title */}
-        <input
-          type="text"
-          value={invoiceTitle}
-          onChange={(e) => setInvoiceTitle(e.target.value)}
-          className="text-4xl font-bold tracking-tight text-blue-800 bg-transparent focus:outline-none border-b-2 border-blue-400 max-w-xs transition-all"
-        />
+        <h1 className="text-4xl font-bold tracking-tight text-blue-800">
+  {invoiceType}
+</h1>
+
 
         {/* Logo Upload */}
         <div className="flex flex-col items-center space-y-2">

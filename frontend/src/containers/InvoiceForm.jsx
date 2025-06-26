@@ -7,6 +7,7 @@ import NotesSection from "../components/NotesSection";
 import html2pdf from "html2pdf.js";
 import { createInvoice, sendInvoiceEmail } from "../services/api";
 import { translations } from "../utils/translations";
+import { FaSpinner } from "react-icons/fa";
 
 const InvoiceForm = () => {
   const [invoiceDate, setInvoiceDate] = useState("");
@@ -20,6 +21,10 @@ const InvoiceForm = () => {
   const [currency, setCurrency] = useState("INR");
   const [language, setLanguage] = useState("en");
   const currentLang = translations[language];
+  const [invoiceType, setInvoiceType] = useState("Tax Invoice");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [logo, setLogo] = useState(null);
+
   const invoiceRef = useRef();
 
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
@@ -151,12 +156,13 @@ const handleBackendPDFDownload = async () => {
       taxRate,
       taxAmount: subtotal * (taxRate / 100),
       total: subtotal + subtotal * (taxRate / 100),
+      logo,
     };
 
     // 1. Save invoice to DB
     const res = await createInvoice(invoiceData);
     const invoiceId = res.invoice._id;
-
+     console.log("Sending invoiceData:", invoiceData);
     // 2. Fetch the PDF file from backend
     const response = await fetch(`http://localhost:5000/api/invoices/pdf/${invoiceId}`);
 
@@ -178,6 +184,14 @@ const handleBackendPDFDownload = async () => {
     alert("Failed to download PDF from backend.");
   }
 };
+
+const cleanedItems = items.map(item => ({
+  name: item.name.trim() === "" ? "Item" : item.name,
+  quantity: item.quantity || 0,
+  rate: item.rate || 0,
+  total: item.total || 0
+}));
+
 
   return (
     
@@ -212,6 +226,20 @@ const handleBackendPDFDownload = async () => {
         <option value="mr">Marathi</option>
       </select>
     </div>
+
+    <div>
+  <label className="text-sm font-medium block mb-1 text-gray-700">Invoice Type</label>
+  <select
+    value={invoiceType}
+    onChange={(e) => setInvoiceType(e.target.value)}
+    className="w-48 border border-gray-300 px-3 py-2 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+  >
+    <option value="Tax Invoice">Tax Invoice</option>
+    <option value="Proforma Invoice">Proforma Invoice</option>
+    <option value="Estimate">Estimate</option>
+  </select>
+</div>
+
   </div>
 
   {/* Action Buttons */}
@@ -236,6 +264,7 @@ const handleBackendPDFDownload = async () => {
 
     <button
       onClick={async () => {
+        setIsSendingEmail(true);
   try {
     const invoiceData = {
       invoiceNumber,
@@ -263,12 +292,23 @@ const handleBackendPDFDownload = async () => {
     console.error("Email failed:", err);
     alert("Failed to send invoice via email.");
   }
+  finally {
+      setIsSendingEmail(false); // Stop loader
+    }
 }}
-
-
-      className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition"
-    >
-      Send Email
+ disabled={isSendingEmail}
+  className={`${
+    isSendingEmail ? "bg-green-400 cursor-wait" : "bg-green-600 hover:bg-green-700"
+  } text-white px-4 py-2 rounded-md text-sm font-medium transition`}
+>
+  {isSendingEmail ? (
+  <span className="flex items-center gap-2">
+    <FaSpinner className="animate-spin" />
+    Sending...
+  </span>
+) : (
+  "Send Email"
+)}
     </button>
   </div>
 </div>
@@ -281,6 +321,7 @@ const handleBackendPDFDownload = async () => {
         setDueDate={setDueDate}
         invoiceNumber={invoiceNumber}
         setInvoiceNumber={setInvoiceNumber}
+        invoiceType={invoiceType}
         labels={currentLang}
       />
 

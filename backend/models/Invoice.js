@@ -34,6 +34,7 @@ const invoiceSchema = new mongoose.Schema({
   discountAmount: Number,
   total: Number,
   notes: String,
+  logo: String,
 });
 
 module.exports = mongoose.model("Invoice", invoiceSchema);

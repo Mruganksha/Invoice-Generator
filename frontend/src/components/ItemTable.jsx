@@ -4,8 +4,15 @@ import { Trash2 } from "lucide-react";
 const ItemTable = ({ items, setItems, labels }) => {
   const handleChange = (index, field, value) => {
     const updated = [...items];
-    updated[index][field] = field === "name" ? value : parseFloat(value) || 0;
-    updated[index].total = updated[index].quantity * updated[index].rate;
+    if (field === "name") {
+    updated[index][field] = value;
+  } else {
+    const number = parseFloat(value);
+    updated[index][field] = isNaN(number) ? 0 : number;
+  }
+  const q = parseFloat(updated[index].quantity) || 0;
+  const r = parseFloat(updated[index].rate) || 0;
+  updated[index].total = q * r;
     setItems(updated);
   };
 
