@@ -191,7 +191,8 @@ const handleBackendPDFDownload = async () => {
     };
 
     const res = await createInvoice(invoiceData);
-    const invoiceId = res.invoice._id;
+    const invoiceId = res.data.invoice._id;
+
 
      const baseUrl = import.meta.env.VITE_API_BASE_URL;
    const response = await fetch(`${baseUrl}/api/invoices/pdf/${invoiceId}`);
@@ -308,7 +309,7 @@ const cleanedItems = items.map(item => ({
             };
 
             const res = await createInvoice(invoiceData);
-            const invoiceId = res.invoice._id;
+            const invoiceId = res.data.invoice._id;
 
             const emailRes = await sendInvoiceEmail(invoiceId);
             alert(emailRes.data.message);
