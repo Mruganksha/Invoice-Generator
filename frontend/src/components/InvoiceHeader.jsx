@@ -9,25 +9,34 @@ const InvoiceHeader = ({
   setInvoiceNumber,
   invoiceType,
   labels,
+  logo,
+  setLogo, 
+  invoiceTitle,
+  setInvoiceTitle,
 }) => {
-  const [logo, setLogo] = useState(null);
+
   const [error, setError] = useState("");
+<<<<<<< HEAD
+=======
+ 
+>>>>>>> e655f46175d44c576d80ca4beb6e8fe57841b62d
   const fileInputRef = useRef(null);
 
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+const handleLogoChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    if (file.type !== "image/png") {
-      setError("Only PNG images are allowed.");
-      return;
-    }
+  if (file.type !== "image/png") {
+    setError("Only PNG images are allowed.");
+    return;
+  }
 
-    if (file.size > 500 * 1024) {
-      setError("File size must be under 500KB.");
-      return;
-    }
+  if (file.size > 500 * 1024) {
+    setError("File size must be under 500KB.");
+    return;
+  }
 
+<<<<<<< HEAD
     const reader = new FileReader();
     reader.onloadend = () => {
        const base64String = reader.result;
@@ -35,7 +44,18 @@ const InvoiceHeader = ({
       setError("");
     };
     reader.readAsDataURL(file);
+=======
+  const reader = new FileReader(); // ✅ This must come before reader.onloadend
+
+  reader.onloadend = () => {
+    setLogo(reader.result);
+    setError("");
+>>>>>>> e655f46175d44c576d80ca4beb6e8fe57841b62d
   };
+
+  reader.readAsDataURL(file);
+};
+
 
   const handleClick = () => {
     fileInputRef.current.click();
@@ -46,10 +66,20 @@ const InvoiceHeader = ({
       {/* Top Row: Invoice Title & Logo */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
         {/* Editable Title */}
+<<<<<<< HEAD
         <h1 className="text-4xl font-bold tracking-tight text-blue-800">
   {invoiceType}
 </h1>
 
+=======
+        <input
+          type="text"
+          value={invoiceTitle}
+          onChange={(e) => setInvoiceTitle(e.target.value)}
+          className="text-4xl font-bold tracking-tight text-blue-800 bg-transparent focus:outline-none border-b-2 border-blue-400 max-w-xs transition-all"
+        />
+        
+>>>>>>> e655f46175d44c576d80ca4beb6e8fe57841b62d
 
         {/* Logo Upload */}
         <div className="flex flex-col items-center space-y-2">

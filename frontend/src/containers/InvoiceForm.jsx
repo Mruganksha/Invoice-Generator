@@ -8,30 +8,41 @@ import html2pdf from "html2pdf.js";
 import { createInvoice, sendInvoiceEmail } from "../services/api";
 import { translations } from "../utils/translations";
 import { FaSpinner } from "react-icons/fa";
+import PDFPreview from "../components/PDFpreview";
+
 
 const InvoiceForm = () => {
   const [invoiceDate, setInvoiceDate] = useState("");
+  const [logo, setLogo] = useState(null); // base64 PNG data
   const [dueDate, setDueDate] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [billTo, setBillTo] = useState({ name: "", email: "", address: "", pincode: "", state: "" });
-  const [billFrom, setBillFrom] = useState({ name: "", email: "", address: "", pincode: "", state: "" });
+  const [billFrom, setBillFrom] = useState({ name: "", email: "", address: "", pincode: "", state: ""});
   const [items, setItems] = useState([{ name: "", quantity: 1, rate: 0, total: 0 }]);
   const [taxRate, setTaxRate] = useState(18);
   const [notes, setNotes] = useState("");
   const [currency, setCurrency] = useState("INR");
   const [language, setLanguage] = useState("en");
   const currentLang = translations[language];
-  const [invoiceType, setInvoiceType] = useState("Tax Invoice");
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [logo, setLogo] = useState(null);
-
   const invoiceRef = useRef();
+  const [invoiceTitle, setInvoiceTitle] = useState("INVOICE");
+  const [notesImage, setNotesImage] = useState(null); // base64 or file
+
+
 
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-
+   
   const [cgst, setCgst] = useState(0);
 const [sgst, setSgst] = useState(0);
 const [igst, setIgst] = useState(0);
+ const [showPDFPreview, setShowPDFPreview] = useState(false);
+ 
+  const pdfPreviewRef = useRef();
+
+
+
 
  useEffect(() => {
     const from = billFrom.state.trim().toLowerCase();
@@ -98,20 +109,39 @@ const isFormValid =
   invoiceNumber && invoiceDate && dueDate &&
   items.length > 0 && items.every(item => item.name && item.quantity > 0 && item.rate >= 0);
 
- const handlePreview = () => {
-  const element = invoiceRef.current.cloneNode(true);
-  const previewWindow = window.open("", "_blank");
-  previewWindow.document.write(`
-    <html>
-      <head><title>Invoice Preview</title></head>
-      <body>${element.outerHTML}</body>
-    </html>
-  `);
-  previewWindow.document.close();
+const handlePDFPreview = () => {
+  if (!isFormValid) {
+    alert('Please fill all required fields before previewing.');
+    return;
+  }
+
+  const previewData = {
+    invoiceNumber,
+    invoiceDate,
+    dueDate,
+    billFrom,
+    billTo,
+    items,
+    subtotal,
+    taxRate,
+    cgst,
+    sgst,
+    igst,
+    notes,
+    currency,
+    logo,
+    invoiceTitle,
+    notesImage,
+  };
+
+  setShowPDFPreview(previewData);
 };
+
+
 
 const handleSaveToBackend = async () => {
   const invoiceData = {
+    logo,
     invoiceNumber,
     invoiceDate,
     dueDate,
@@ -144,6 +174,7 @@ const handleBackendPDFDownload = async () => {
 
   try {
     const invoiceData = {
+      logo, 
       invoiceNumber,
       invoiceDate,
       dueDate,
@@ -245,7 +276,7 @@ const cleanedItems = items.map(item => ({
   {/* Action Buttons */}
   <div className="flex flex-wrap gap-3">
     <button
-      onClick={handlePreview}
+      onClick={handlePDFPreview}
       className="bg-gray-100 text-gray-800 border border-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition"
     >
       Preview
@@ -312,9 +343,12 @@ const cleanedItems = items.map(item => ({
     </button>
   </div>
 </div>
-        <div ref={invoiceRef}>
+        <div ref={invoiceRef} className="pdf-preview">
+
       {/* Invoice Details */}
       <InvoiceHeader
+      invoiceTitle={invoiceTitle}
+  setInvoiceTitle={setInvoiceTitle}
         invoiceDate={invoiceDate}
         setInvoiceDate={setInvoiceDate}
         dueDate={dueDate}
@@ -323,6 +357,8 @@ const cleanedItems = items.map(item => ({
         setInvoiceNumber={setInvoiceNumber}
         invoiceType={invoiceType}
         labels={currentLang}
+         logo={logo}
+  setLogo={setLogo}
       />
 
 
@@ -340,7 +376,8 @@ const cleanedItems = items.map(item => ({
       {/* Notes + Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch  pl-8 pr-8 pt-4 pb-4 ">
         <div className="h-full">
-          <NotesSection notes={notes} setNotes={setNotes} labels={currentLang} />
+          <NotesSection notes={notes} setNotes={setNotes} labels={currentLang} notesImage={notesImage}
+  setNotesImage={setNotesImage} />
         </div>
         <div className="h-full">
           <SummarySection
@@ -357,6 +394,14 @@ const cleanedItems = items.map(item => ({
         </div>
       </div>
     </div>
+   {showPDFPreview && (
+  <PDFPreview 
+    onClose={() => setShowPDFPreview(false)}
+    data={showPDFPreview}
+  />
+)}
+
+    
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 
-const NotesSection = ({ notes, setNotes, labels }) => {
+const NotesSection = ({ notes, setNotes, labels, setNotesImage }) => {
   const [images, setImages] = useState([]);
   const fileInputRef = useRef(null);
 
@@ -12,6 +12,8 @@ const NotesSection = ({ notes, setNotes, labels }) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImages(prev => [...prev, reader.result]);
+        setNotesImage(reader.result);
+        console.log("notesImage set:", reader.result);
       };
       reader.readAsDataURL(file);
     });
@@ -22,7 +24,7 @@ const NotesSection = ({ notes, setNotes, labels }) => {
       {/* Top section that grows */}
       <div className="flex flex-col gap-6 flex-grow">
         <h2 className="text-2xl font-semibold text-gray-800 border-b pb-4">
-           {labels.notes}
+          {labels.notes}
         </h2>
 
         <textarea
