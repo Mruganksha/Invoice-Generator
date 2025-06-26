@@ -97,7 +97,6 @@ const generateInvoicePDF = (invoice, filePath) => {
     invoice.items.forEach((item) => {
       const y = tableTop + 30 + (i * 20);
 
-      // Prevent content from overlapping footer
       if (y > doc.page.height - FOOTER_HEIGHT - 100) doc.addPage();
 
       doc

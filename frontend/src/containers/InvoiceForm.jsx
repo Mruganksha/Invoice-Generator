@@ -68,7 +68,6 @@ const [igst, setIgst] = useState(0);
 
   const handleSavePDF = () => {
     
-  // Validate required fields
   if (!billFrom.name || !billFrom.email || !billFrom.address || !billFrom.pincode || !billFrom.state) {
     alert("Please fill in all 'Bill From' fields.");
     return;
@@ -89,7 +88,6 @@ const [igst, setIgst] = useState(0);
     return;
   }
 
-  // Proceed to download PDF
   const element = invoiceRef.current;
   const opt = {
     margin: 0.5,
