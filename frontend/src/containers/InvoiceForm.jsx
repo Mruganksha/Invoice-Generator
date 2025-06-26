@@ -8,7 +8,7 @@ import html2pdf from "html2pdf.js";
 import { createInvoice, sendInvoiceEmail } from "../services/api";
 import { translations } from "../utils/translations";
 import { FaSpinner } from "react-icons/fa";
-import PDFPreview from "../components/PDFpreview";
+import PDFPreview from "../components/PDFPreview";
 
 
 const InvoiceForm = () => {
@@ -27,7 +27,8 @@ const InvoiceForm = () => {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const invoiceRef = useRef();
   const [invoiceTitle, setInvoiceTitle] = useState("INVOICE");
-  const [notesImage, setNotesImage] = useState([]); // base64 or file
+  const [notesImage, setNotesImage] = useState(null); // base64 or file
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
 
 
 
@@ -171,6 +172,7 @@ const handleBackendPDFDownload = async () => {
     return;
   }
 
+  setIsDownloadingPDF(true); // Start loader
   try {
     const invoiceData = {
       logo, 
@@ -189,19 +191,16 @@ const handleBackendPDFDownload = async () => {
       total: subtotal + subtotal * (taxRate / 100),
     };
 
-    // 1. Save invoice to DB
     const res = await createInvoice(invoiceData);
     const invoiceId = res.invoice._id;
-     console.log("Sending invoiceData:", invoiceData);
-    // 2. Fetch the PDF file from backend
-    const response = await fetch(`http://localhost:5000/api/invoices/pdf/${invoiceId}`);
 
+     const baseUrl = import.meta.env.VITE_API_BASE_URL;
+   const response = await fetch(`${baseUrl}/api/invoices/pdf/${invoiceId}`);
     if (!response.ok) throw new Error("Download failed");
 
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
 
-    // 3. Trigger download
     const link = document.createElement("a");
     link.href = url;
     link.download = `${invoiceNumber}.pdf`;
@@ -212,8 +211,11 @@ const handleBackendPDFDownload = async () => {
   } catch (err) {
     console.error("PDF Download Error:", err);
     alert("Failed to download PDF from backend.");
+  } finally {
+    setIsDownloadingPDF(false); // Stop loader
   }
 };
+
 
 const cleanedItems = items.map(item => ({
   name: item.name.trim() === "" ? "Item" : item.name,
@@ -225,111 +227,116 @@ const cleanedItems = items.map(item => ({
 
   return (
     
-    <div className="max-w-7xl mx-auto  pl-8 pr-8 pt-4 pb-4 space-y-8">
-      {/* Top Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 p-8">
-  {/* Currency & Language Dropdowns */}
-  <div className="flex gap-4 ">
-    <div>
-      <label className="text-sm font-medium block mb-1 text-gray-700">Currency</label>
-      <select
-        value={currency}
-        onChange={(e) => setCurrency(e.target.value)}
-        className="w-40 border border-gray-300 px-3 py-2 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="INR">INR ₹</option>
-        <option value="USD">USD $</option>
-        <option value="EUR">EUR €</option>
-        <option value="GBP">GBP £</option>
-      </select>
+   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 space-y-8">
+  {/* Top Toolbar */}
+  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+    {/* Currency & Language Dropdowns */}
+    <div className="flex flex-col sm:flex-row gap-4">
+      <div>
+        <label className="text-sm font-medium block mb-1 text-gray-700">Currency</label>
+        <select
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value)}
+          className="w-full sm:w-40 border border-gray-300 px-3 py-2 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="INR">INR ₹</option>
+          <option value="USD">USD $</option>
+          <option value="EUR">EUR €</option>
+          <option value="GBP">GBP £</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium block mb-1 text-gray-700">Language</label>
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="w-full sm:w-40 border border-gray-300 px-3 py-2 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="mr">Marathi</option>
+        </select>
+      </div>
     </div>
 
-    <div>
-      <label className="text-sm font-medium block mb-1 text-gray-700">Language</label>
-      <select
-        value={language}
-        onChange={(e) => setLanguage(e.target.value)}
-        className="w-40 border border-gray-300 px-3 py-2 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    {/* Action Buttons */}
+    <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+      <button
+        onClick={handlePDFPreview}
+        className="bg-gray-100 text-gray-800 border border-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition w-full sm:w-auto"
       >
-        <option value="en">English</option>
-        <option value="hi">Hindi</option>
-        <option value="mr">Marathi</option>
-      </select>
-    </div>
+        Preview
+      </button>
 
-  </div>
-
-  {/* Action Buttons */}
-  <div className="flex flex-wrap gap-3">
-    <button
-      onClick={handlePDFPreview}
-      className="bg-gray-100 text-gray-800 border border-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition"
-    >
-      Preview
-    </button>
-    <button
+     <button
   onClick={handleBackendPDFDownload}
-  disabled={!isFormValid}
-  className={`bg-sky-600 text-white px-4 py-2 rounded-md text-sm font-medium transition ${
-    isFormValid
-      ? "hover:bg-sky-800"
-      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+  disabled={!isFormValid || isDownloadingPDF}
+  className={`text-white px-4 py-2 rounded-md text-sm font-medium transition w-full sm:w-auto ${
+    !isFormValid || isDownloadingPDF
+      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+      : "bg-sky-600 hover:bg-sky-800"
   }`}
 >
-  Save as PDF
+  {isDownloadingPDF ? (
+    <span className="flex items-center justify-center gap-2">
+      <FaSpinner className="animate-spin" />
+      Downloading...
+    </span>
+  ) : (
+    "Save as PDF"
+  )}
 </button>
 
-    <button
-      onClick={async () => {
-        setIsSendingEmail(true);
-  try {
-    const invoiceData = {
-      invoiceNumber,
-      invoiceDate,
-      dueDate,
-      billFrom,
-      billTo,
-      items,
-      notes,
-      currency,
-      notesImage,
-      subtotal,
-      taxRate,
-      taxAmount: subtotal * (taxRate / 100),
-      total: subtotal + subtotal * (taxRate / 100),
-    };
 
-    // Save invoice to DB and get _id
-    const res = await createInvoice(invoiceData);
-    const invoiceId = res.invoice._id;
+      <button
+        onClick={async () => {
+          setIsSendingEmail(true);
+          try {
+            const invoiceData = {
+              invoiceNumber,
+              invoiceDate,
+              dueDate,
+              billFrom,
+              billTo,
+              items,
+              notes,
+              currency,
+              subtotal,
+              taxRate,
+              taxAmount: subtotal * (taxRate / 100),
+              total: subtotal + subtotal * (taxRate / 100),
+            };
 
-    //  send email using that ID
-    const emailRes = await sendInvoiceEmail(invoiceId);
-    alert(emailRes.data.message);
-  } catch (err) {
-    console.error("Email failed:", err);
-    alert("Failed to send invoice via email.");
-  }
-  finally {
-      setIsSendingEmail(false); // Stop loader
-    }
-}}
- disabled={isSendingEmail}
-  className={`${
-    isSendingEmail ? "bg-green-400 cursor-wait" : "bg-green-600 hover:bg-green-700"
-  } text-white px-4 py-2 rounded-md text-sm font-medium transition`}
->
-  {isSendingEmail ? (
-  <span className="flex items-center gap-2">
-    <FaSpinner className="animate-spin" />
-    Sending...
-  </span>
-) : (
-  "Send Email"
-)}
-    </button>
+            const res = await createInvoice(invoiceData);
+            const invoiceId = res.invoice._id;
+
+            const emailRes = await sendInvoiceEmail(invoiceId);
+            alert(emailRes.data.message);
+          } catch (err) {
+            console.error("Email failed:", err);
+            alert("Failed to send invoice via email.");
+          } finally {
+            setIsSendingEmail(false);
+          }
+        }}
+        disabled={isSendingEmail}
+        className={`w-full sm:w-auto px-4 py-2 rounded-md text-sm font-medium transition text-white ${
+          isSendingEmail ? "bg-green-400 cursor-wait" : "bg-green-600 hover:bg-green-700"
+        }`}
+      >
+        {isSendingEmail ? (
+          <span className="flex items-center justify-center gap-2">
+            <FaSpinner className="animate-spin" />
+            Sending...
+          </span>
+        ) : (
+          "Send Email"
+        )}
+      </button>
+    </div>
   </div>
-</div>
+
         <div ref={invoiceRef} className="pdf-preview">
 
       {/* Invoice Details */}
