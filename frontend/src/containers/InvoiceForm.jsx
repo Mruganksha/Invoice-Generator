@@ -27,7 +27,7 @@ const InvoiceForm = () => {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const invoiceRef = useRef();
   const [invoiceTitle, setInvoiceTitle] = useState("INVOICE");
-  const [notesImage, setNotesImage] = useState(null); // base64 or file
+  const [notesImage, setNotesImage] = useState([]); // base64 or file
 
 
 
@@ -181,6 +181,7 @@ const handleBackendPDFDownload = async () => {
       billTo,
       items,
       notes,
+      notesImage,
       currency,
       subtotal,
       taxRate,
@@ -291,6 +292,7 @@ const cleanedItems = items.map(item => ({
       items,
       notes,
       currency,
+      notesImage,
       subtotal,
       taxRate,
       taxAmount: subtotal * (taxRate / 100),
