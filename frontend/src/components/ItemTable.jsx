@@ -38,8 +38,8 @@ const ItemTable = ({ items, setItems, labels, currency }) => {
         {labels.invoiceItems}
       </h2>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm text-gray-800 border border-gray-200 rounded-md">
+      <div className="overflow-x-auto -mx-4 sm:mx-0">
+        <table className="min-w-[640px] sm:min-w-full text-sm text-gray-800 border border-gray-200 rounded-md">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs border-b">
             <tr>
               <th className="text-left py-3 px-4">{labels.item}</th>
@@ -62,7 +62,7 @@ const ItemTable = ({ items, setItems, labels, currency }) => {
                     onChange={(e) =>
                       handleChange(index, "name", e.target.value)
                     }
-                    className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-40 sm:w-full px-2 py-1 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder={labels.itemPlaceholder}
                   />
                 </td>
