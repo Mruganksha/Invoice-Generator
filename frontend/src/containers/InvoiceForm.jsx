@@ -8,7 +8,7 @@ import html2pdf from "html2pdf.js";
 import { createInvoice, sendInvoiceEmail } from "../services/api";
 import { translations } from "../utils/translations";
 import { FaSpinner } from "react-icons/fa";
-import PDFPreview from "../components/PDFpreview";
+import PDFPreview from "../components/PDFPreview";
 
 
 const InvoiceForm = () => {
