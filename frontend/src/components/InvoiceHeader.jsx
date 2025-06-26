@@ -10,76 +10,50 @@ const InvoiceHeader = ({
   invoiceType,
   labels,
   logo,
-  setLogo, 
+  setLogo,
   invoiceTitle,
   setInvoiceTitle,
 }) => {
-
   const [error, setError] = useState("");
-<<<<<<< HEAD
-=======
- 
->>>>>>> e655f46175d44c576d80ca4beb6e8fe57841b62d
   const fileInputRef = useRef(null);
 
-const handleLogoChange = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  if (file.type !== "image/png") {
-    setError("Only PNG images are allowed.");
-    return;
-  }
+    if (file.type !== "image/png") {
+      setError("Only PNG images are allowed.");
+      return;
+    }
 
-  if (file.size > 500 * 1024) {
-    setError("File size must be under 500KB.");
-    return;
-  }
+    if (file.size > 500 * 1024) {
+      setError("File size must be under 500KB.");
+      return;
+    }
 
-<<<<<<< HEAD
     const reader = new FileReader();
     reader.onloadend = () => {
-       const base64String = reader.result;
-    setLogo(base64String);
+      setLogo(reader.result); // Base64 image string
       setError("");
     };
     reader.readAsDataURL(file);
-=======
-  const reader = new FileReader(); // ✅ This must come before reader.onloadend
-
-  reader.onloadend = () => {
-    setLogo(reader.result);
-    setError("");
->>>>>>> e655f46175d44c576d80ca4beb6e8fe57841b62d
   };
-
-  reader.readAsDataURL(file);
-};
-
 
   const handleClick = () => {
     fileInputRef.current.click();
   };
 
   return (
-    <div className="  pl-8 pr-8 pt-4 pb-4 rounded-xl ">
+    <div className="pl-8 pr-8 pt-4 pb-4 rounded-xl">
       {/* Top Row: Invoice Title & Logo */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
-        {/* Editable Title */}
-<<<<<<< HEAD
-        <h1 className="text-4xl font-bold tracking-tight text-blue-800">
-  {invoiceType}
-</h1>
-
-=======
+        {/* Editable Invoice Title */}
         <input
           type="text"
           value={invoiceTitle}
           onChange={(e) => setInvoiceTitle(e.target.value)}
           className="text-4xl font-bold tracking-tight text-blue-800 bg-transparent focus:outline-none border-b-2 border-blue-400 max-w-xs transition-all"
         />
-        
->>>>>>> e655f46175d44c576d80ca4beb6e8fe57841b62d
 
         {/* Logo Upload */}
         <div className="flex flex-col items-center space-y-2">
@@ -95,7 +69,9 @@ const handleLogoChange = (e) => {
                 className="w-full h-full object-contain"
               />
             ) : (
-              <span className="text-blue-500 text-sm"><label className="mb-1 font-medium">{labels.uploadLogo}</label></span>
+              <span className="text-blue-500 text-sm">
+                <label className="mb-1 font-medium">{labels.uploadLogo}</label>
+              </span>
             )}
           </div>
           <input

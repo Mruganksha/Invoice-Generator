@@ -1,4 +1,5 @@
 import React from "react";
+import { currencySymbols } from "../utils/currency";
 
 const PDFPreview = ({ onClose, data }) => {
   const {
@@ -23,7 +24,8 @@ const PDFPreview = ({ onClose, data }) => {
 
   const totalTax = cgst + sgst + igst;
   const total = subtotal + totalTax;
-  
+  const currencySymbol = currencySymbols[currency] || currency;
+
   console.log("PDFPreview notesImage:", notesImage);
   
 
@@ -91,8 +93,8 @@ const PDFPreview = ({ onClose, data }) => {
               <tr>
                 <th className="p-3 text-left">Description</th>
                 <th className="p-3 text-right">Qty</th>
-                <th className="p-3 text-right">Rate ({currency})</th>
-                <th className="p-3 text-right">Amount ({currency})</th>
+                <th className="p-3 text-right">Rate ({currency})</th> → Rate ({currencySymbol})
+                <th className="p-3 text-right">Amount ({currency})</th> → Amount ({currencySymbol})
               </tr>
             </thead>
             <tbody>
@@ -114,7 +116,7 @@ const PDFPreview = ({ onClose, data }) => {
             <tbody>
               <tr>
                 <td className="py-1 text-gray-600">Subtotal:</td>
-                <td className="py-1 text-right">{currency} {subtotal.toFixed(2)}</td>
+                <td className="py-1 text-right">{currency} {subtotal.toFixed(2)} → {currencySymbol}{subtotal.toFixed(2)}</td>
               </tr>
               {cgst > 0 && (
                 <tr>

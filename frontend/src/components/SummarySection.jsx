@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import { currencySymbols } from "../utils/currency";
 
 const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgst = 0, igst = 0, labels }) => {
   const [showDiscount, setShowDiscount] = useState(false);
   const [showShipping, setShowShipping] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [shipping, setShipping] = useState(0);
+
+  const symbol = currencySymbols[currency] || currency;
 
   const total =
     subtotal - (showDiscount ? discount : 0) + cgst + sgst + igst + (showShipping ? shipping : 0);
@@ -13,11 +16,11 @@ const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgs
     <div className="h-full w-full border border-gray-200 rounded-xl shadow-lg p-8 flex flex-col justify-between bg-gradient-to-br from-white to-gray-50">
       <div className="space-y-6">
         <h2 className="text-2xl font-semibold text-blue-800 border-b pb-4">
-           {labels.invoiceSummary}
+          {labels.invoiceSummary}
         </h2>
 
         <div className="space-y-5 text-sm text-gray-700">
-          <SummaryRow label={labels.subtotal} value={`₹${subtotal.toFixed(2)}`} />
+          <SummaryRow label={labels.subtotal} value={`${symbol}${subtotal.toFixed(2)}`} />
 
           <SummaryRow
             label={labels.tax}
@@ -33,17 +36,15 @@ const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgs
           />
 
           {cgst > 0 && sgst > 0 ? (
-  <>
-    <SummaryRow label={`CGST (${(taxRate / 2).toFixed(1)}%)`} value={`₹${cgst.toFixed(2)}`} />
-    <SummaryRow label={`SGST (${(taxRate / 2).toFixed(1)}%)`} value={`₹${sgst.toFixed(2)}`} />
-  </>
-) : (
-  <SummaryRow label={`IGST (${taxRate}%)`} value={`₹${igst.toFixed(2)}`} />
-)}
+            <>
+              <SummaryRow label={`CGST (${(taxRate / 2).toFixed(1)}%)`} value={`${symbol}${cgst.toFixed(2)}`} />
+              <SummaryRow label={`SGST (${(taxRate / 2).toFixed(1)}%)`} value={`${symbol}${sgst.toFixed(2)}`} />
+            </>
+          ) : (
+            <SummaryRow label={`IGST (${taxRate}%)`} value={`${symbol}${igst.toFixed(2)}`} />
+          )}
 
-
-          {/* Discount Section */}
-          {showDiscount ? (
+          {showDiscount && (
             <SummaryRow
               label={labels.discount}
               input={
@@ -68,10 +69,9 @@ const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgs
                 </div>
               }
             />
-          ) : null}
+          )}
 
-          {/* Shipping Section */}
-          {showShipping ? (
+          {showShipping && (
             <SummaryRow
               label={labels.shipping}
               input={
@@ -96,9 +96,8 @@ const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgs
                 </div>
               }
             />
-          ) : null}
+          )}
 
-          {/* Combined Button Row */}
           {!showDiscount || !showShipping ? (
             <div className="flex gap-4">
               {!showDiscount && (
@@ -112,10 +111,9 @@ const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgs
         </div>
       </div>
 
-      {/* Total Section */}
       <div className="pt-6 mt-6 border-t border-gray-300 flex justify-between items-center text-lg font-semibold text-gray-900">
         <span>{labels.total}</span>
-        <span>₹{total.toFixed(2)}</span>
+        <span>{symbol}{total.toFixed(2)}</span>
       </div>
     </div>
   );

@@ -25,7 +25,6 @@ const InvoiceForm = () => {
   const [language, setLanguage] = useState("en");
   const currentLang = translations[language];
   const [isSendingEmail, setIsSendingEmail] = useState(false);
-  const [logo, setLogo] = useState(null);
   const invoiceRef = useRef();
   const [invoiceTitle, setInvoiceTitle] = useState("INVOICE");
   const [notesImage, setNotesImage] = useState(null); // base64 or file
@@ -187,7 +186,6 @@ const handleBackendPDFDownload = async () => {
       taxRate,
       taxAmount: subtotal * (taxRate / 100),
       total: subtotal + subtotal * (taxRate / 100),
-      logo,
     };
 
     // 1. Save invoice to DB
@@ -257,19 +255,6 @@ const cleanedItems = items.map(item => ({
         <option value="mr">Marathi</option>
       </select>
     </div>
-
-    <div>
-  <label className="text-sm font-medium block mb-1 text-gray-700">Invoice Type</label>
-  <select
-    value={invoiceType}
-    onChange={(e) => setInvoiceType(e.target.value)}
-    className="w-48 border border-gray-300 px-3 py-2 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-  >
-    <option value="Tax Invoice">Tax Invoice</option>
-    <option value="Proforma Invoice">Proforma Invoice</option>
-    <option value="Estimate">Estimate</option>
-  </select>
-</div>
 
   </div>
 
@@ -355,7 +340,6 @@ const cleanedItems = items.map(item => ({
         setDueDate={setDueDate}
         invoiceNumber={invoiceNumber}
         setInvoiceNumber={setInvoiceNumber}
-        invoiceType={invoiceType}
         labels={currentLang}
          logo={logo}
   setLogo={setLogo}
@@ -371,7 +355,7 @@ const cleanedItems = items.map(item => ({
 />
 
 
-      <ItemTable items={items} setItems={setItems} labels={currentLang} />
+      <ItemTable items={items} setItems={setItems} labels={currentLang} currency={currency} />
 
       {/* Notes + Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch  pl-8 pr-8 pt-4 pb-4 ">
