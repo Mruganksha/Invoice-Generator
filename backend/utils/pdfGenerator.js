@@ -97,7 +97,6 @@ const generateInvoicePDF = (invoice, filePath) => {
     invoice.items.forEach((item) => {
       const y = tableTop + 30 + (i * 20);
 
-      // Prevent content from overlapping footer
       if (y > doc.page.height - FOOTER_HEIGHT - 100) doc.addPage();
 
       doc
@@ -148,19 +147,62 @@ const generateInvoicePDF = (invoice, filePath) => {
       .text(`${invoice.currency || "INR"} ${(invoice.total || 0).toFixed(2)}`, 460, currentY + 5, { align: "right" });
 
     // ========== 5. Notes ==========
-    if (invoice.notes) {
-      doc.moveDown(2);
-      if (doc.y > doc.page.height - FOOTER_HEIGHT - 60) doc.addPage();
+      if (invoice.notes || (Array.isArray(invoice.notesImage) && invoice.notesImage.length > 0)) {
+  let y = doc.y + 20;
 
-      doc
-        .font("Helvetica-Bold")
-        .fontSize(10)
-        .text("Additional Notes:");
-      doc
-        .font("Helvetica")
-        .fontSize(10)
-        .text(invoice.notes);
-    }
+  if (y > doc.page.height - FOOTER_HEIGHT - 120) {
+    doc.addPage();
+    y = doc.y;
+  }
+
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(12)
+    .text("Additional Notes", 50, y);
+
+  y += 20;
+
+  if (invoice.notes) {
+    doc
+      .font("Helvetica")
+      .fontSize(10)
+      .text(invoice.notes, 50, y, {
+        width: 500,
+        align: "left"
+      });
+
+    y = doc.y + 20;
+  }
+
+  if (Array.isArray(invoice.notesImage)) {
+    const imageWidth = 120;
+    const imageHeight = 90;
+    const margin = 20;
+    let x = 50;
+
+    invoice.notesImage.forEach((imgData, idx) => {
+      if (y + imageHeight > doc.page.height - FOOTER_HEIGHT - 30) {
+        doc.addPage();
+        x = 50;
+        y = doc.y;
+      }
+
+      try {
+        const base64Data = imgData.split(",")[1];
+        const buffer = Buffer.from(base64Data, "base64");
+        doc.image(buffer, x, y, { width: imageWidth, height: imageHeight });
+
+        x += imageWidth + margin;
+        if (x + imageWidth > doc.page.width - 50) {
+          x = 50;
+          y += imageHeight + 20;
+        }
+      } catch (err) {
+        console.error("Failed to load notes image:", err.message);
+      }
+    });
+  }
+}
 
     // ========== 6. Footer (Always on First Page) ==========
     doc.switchToPage(0);

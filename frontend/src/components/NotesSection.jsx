@@ -11,9 +11,16 @@ const NotesSection = ({ notes, setNotes, labels, setNotesImage }) => {
     imageFiles.forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImages(prev => [...prev, reader.result]);
-        setNotesImage(reader.result);
-        console.log("notesImage set:", reader.result);
+        const base64 = reader.result;
+        setImages(prev => {
+          const updated = [...prev, base64];
+          setTimeout(() => {
+            setNotesImage(updated); 
+            console.log("notesImage set:", updated);
+          }, 0);
+
+          return updated;
+        });
       };
       reader.readAsDataURL(file);
     });
