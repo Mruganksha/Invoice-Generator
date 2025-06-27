@@ -5,7 +5,7 @@ require("dotenv").config();
 
 const app = express();
 app.use(cors({
-  origin: ['https://invoice-generator-bgqx.vercel.app'], // ✅ Replace with your actual frontend domain
+  origin: ['https://invoice-generator-bgqx.vercel.app'], 
   methods: ['GET', 'POST'],
 }));
 
