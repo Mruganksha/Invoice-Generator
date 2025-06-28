@@ -4,18 +4,12 @@ import BillingSection from "../components/BillingSection";
 import ItemTable from "../components/ItemTable";
 import SummarySection from "../components/SummarySection";
 import NotesSection from "../components/NotesSection";
-import PDFPreview from "../components/PDFPreview";
 import html2pdf from "html2pdf.js";
 import { createInvoice, sendInvoiceEmail } from "../services/api";
 import { translations } from "../utils/translations";
 import { FaSpinner } from "react-icons/fa";
+import PDFPreview from "../components/PDFPreview";
 
-/*
-  NOTE: There is a case sensitivity mismatch in your import.
-  Your file is named 'PDFPreview.jsx', but you may have imported it as '../components/PDFPreview' or '../components/PDFpreview'.
-  On case-sensitive file systems (like Linux), this will cause errors.
-  Make sure both the filename and the import statement use the exact same casing: 'PDFPreview'.
-*/
 
 const InvoiceForm = () => {
   const [invoiceDate, setInvoiceDate] = useState("");

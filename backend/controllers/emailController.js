@@ -29,7 +29,7 @@ exports.sendInvoiceEmail = async (req, res) => {
 
     // Send email using Resend
     const response = await resend.emails.send({
-      from: 'Your Name <inovice-generator.example.com>', 
+      from: 'Your Name <onboarding@resend.dev>', 
       to: invoice.billTo.email,
       subject: `Invoice #${invoice.invoiceNo}`,
       html: '<p>Please find your invoice attached.</p>',

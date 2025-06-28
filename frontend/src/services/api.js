@@ -9,7 +9,6 @@ export const createInvoice = async (invoiceData) => {
   return response.data;
 };
 
-
 export const getInvoiceById = (id) => API.get(`/invoices/${id}`);
 
 export const downloadInvoicePDF = (id) =>
