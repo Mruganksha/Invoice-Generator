@@ -1,15 +1,16 @@
 const mongoose = require("mongoose");
 
 const itemSchema = new mongoose.Schema({
-  item: String,
-  description: String,
+  name: String,
   quantity: Number,
-  price: Number,
-})
+  rate: Number,
+  total: Number,
+});
+
 
 const invoiceSchema = new mongoose.Schema({
-  invoiceNo: String,
-  date: String,
+  invoiceNumber: String,
+  invoiceDate: String,
   dueDate: String,
   billTo: {
     name: String,
@@ -30,11 +31,14 @@ const invoiceSchema = new mongoose.Schema({
   taxRate: Number,
   discountRate: Number,
   subtotal: Number,
-  taxAmount: Number,
+  cgst: Number,           
+  sgst: Number,           
+  igst: Number,           
   discountAmount: Number,
   total: Number,
   notes: String,
   logo: String,
+  notesImage: [String],
 });
 
 module.exports = mongoose.model("Invoice", invoiceSchema);

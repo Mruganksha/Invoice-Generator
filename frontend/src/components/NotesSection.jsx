@@ -15,7 +15,7 @@ const NotesSection = ({ notes, setNotes, labels, setNotesImage }) => {
         setImages(prev => {
           const updated = [...prev, base64];
           setTimeout(() => {
-            setNotesImage(updated); 
+            setNotesImage(base64); 
             console.log("notesImage set:", updated);
           }, 0);
 

@@ -2,224 +2,439 @@ const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
 
-const FOOTER_HEIGHT = 40;
+// Constants for layout
+const FOOTER_HEIGHT = 10;
+const MARGIN = 20;
+const PAGE_WIDTH = 612; // US Letter width in points
+const LINE_COLOR = "#000000"; // Light gray for borders
 
+// Simple currency symbol lookup
+const getCurrencySymbol = (currency) => {
+  const symbols = {
+    USD: '$', EUR: '€', GBP: '£', INR: '₹', JPY: '¥'
+  };
+  return symbols[currency] || currency;
+};
 
-const invoicesDir = path.join(__dirname, '../invoices');
-if (!fs.existsSync(invoicesDir)) fs.mkdirSync(invoicesDir, { recursive: true });
 
 const generateInvoicePDF = (invoice, filePath) => {
+  console.log("logo:", invoice.logo?.slice(0, 30));
+console.log("notesImage:", invoice.notesImage?.slice(0, 30));
+  console.log("Invoice data for PDF:", invoice);
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50 });
+      const doc = new PDFDocument({ margin: MARGIN });
     const stream = fs.createWriteStream(filePath);
     doc.pipe(stream);
 
-    // ========== 1. Header with Logo and Title ==========
+   
+
+    const currencySymbol = getCurrencySymbol(invoice.currency);
+
+    // ========== 1. Header Section ==========
+    const headerY = MARGIN;
+
+    // Left side - Invoice title and details
+    doc.font("Helvetica-Bold")
+       .fontSize(24)
+       .fillColor("#000000")
+       .text(invoice.invoiceTitle || "INVOICE", MARGIN, headerY);
+
+    doc.font("Helvetica")
+       .fontSize(10)
+       .fillColor("#1F2937")
+       .text(`Invoice #: ${invoice.invoiceNumber || "N/A"}`, MARGIN, headerY + 30)
+       .text(`Date: ${invoice.invoiceDate || "N/A"}`, MARGIN, headerY + 45)
+       .text(`Due: ${invoice.dueDate || "N/A"}`, MARGIN, headerY + 60);
+
+    // Right side - Logo
     if (invoice.logo && invoice.logo.startsWith("data:image")) {
       try {
         const base64Data = invoice.logo.split(',')[1];
         const buffer = Buffer.from(base64Data, 'base64');
-        doc.image(buffer, doc.page.width - 130, 20, { width: 100 });
+        doc.image(buffer, PAGE_WIDTH - MARGIN - 100, headerY, { 
+          width: 100,
+          align: 'right'
+        });
       } catch (e) {
         console.error("Error rendering logo:", e.message);
       }
     }
 
-    doc
-      .fillColor("#1E3A8A")
-      .fontSize(26)
-      .font("Helvetica-Bold")
-      .text(invoice.invoiceTitle || 'INVOICE', 50, 30)
-      .moveDown();
+    // Border bottom
+    doc.moveTo(MARGIN, headerY + 80)
+       .lineTo(PAGE_WIDTH - MARGIN, headerY + 80)
+       .strokeColor(LINE_COLOR)
+       .lineWidth(1)
+       .stroke();
 
-    doc
-      .fontSize(10)
-      .fillColor("black")
-      .font("Helvetica")
-      .text(`Invoice #: ${invoice.invoiceNumber || "N/A"}`)
-      .text(`Date: ${invoice.invoiceDate || "N/A"}`)
-      .text(`Due Date: ${invoice.dueDate || "N/A"}`)
-      .moveDown(2);
+    doc.y = headerY + 100;
 
     // ========== 2. Billing Sections ==========
-    const billFromTop = doc.y;
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(12)
-      .text("From:", 50, billFromTop)
-      .font("Helvetica")
-      .fontSize(10)
-      .text(invoice.billFrom.name, 50)
-      .text(invoice.billFrom.address, 50)
-      .text(`${invoice.billFrom.state} - ${invoice.billFrom.pincode}`, 50)
-      .text(invoice.billFrom.email, 50);
+    const billSectionY = doc.y;
+    const columnWidth = (PAGE_WIDTH - (MARGIN * 2)) / 2;
+    const lineHeight = 14;
 
-    const billToTop = billFromTop;
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(12)
-      .text("Bill To:", 300, billToTop)
-      .font("Helvetica")
-      .fontSize(10)
-      .text(invoice.billTo.name, 300)
-      .text(invoice.billTo.address, 300)
-      .text(`${invoice.billTo.state} - ${invoice.billTo.pincode}`, 300)
-      .text(invoice.billTo.email, 300);
+    // Bill To (left column)
+    doc.font("Helvetica-Bold")
+       .fontSize(12)
+       .fillColor("#374151")
+       .text("Bill To:", MARGIN, billSectionY)
+       .moveDown(0.5);
 
-    doc.moveDown(2);
-    
-    
-    // ========== 3. Items Table ==========
-    const tableTop = doc.y + 10;
-    const itemX = 50;
-    const qtyX = 260;
-    const rateX = 340;
-    const amountX = 440;
+    doc.font("Helvetica")
+       .fontSize(10)
+       .fillColor("#374151")
+       .text(invoice.billTo?.name || "", MARGIN)
+       .moveDown(lineHeight/50)
+       .text(invoice.billTo?.address || "", MARGIN)
+       .moveDown(lineHeight/50)
+       .text(`${invoice.billTo?.state || ""} - ${invoice.billTo?.pincode || ""}`, MARGIN)
+       .moveDown(lineHeight/50)
+       .text(invoice.billTo?.email || "", MARGIN);
 
-    doc
-      .fillColor("#F3F4F6")
-      .rect(itemX - 2, tableTop - 2, 510, 20)
-      .fill();
+    // From (right column)
+    const rightColumnX = MARGIN + columnWidth;
 
-    doc
-      .fillColor("#1F2937")
-      .font("Helvetica-Bold")
-      .fontSize(10)
-      .fillColor("black")
-      .text("Description", itemX, tableTop)
-      .text("Qty", qtyX, tableTop)
-      .text(`Rate (${invoice.currency || "INR"})`, rateX, tableTop)
-      .text(`Amount (${invoice.currency || "INR"})`, amountX, tableTop);
+    doc.font("Helvetica-Bold")
+       .fontSize(12)
+       .fillColor("#374151")
+       .text("From:", rightColumnX, billSectionY, {
+         align: "right",
+         width: columnWidth
+       })
+       .moveDown(0.5);
 
-    doc.moveTo(itemX, tableTop + 15).lineTo(560, tableTop + 15).strokeColor("#D1D5DB").stroke();
+    doc.font("Helvetica")
+       .fontSize(10)
+       .fillColor("#374151")
+       .text(invoice.billFrom?.name || "", rightColumnX, undefined, {
+         align: "right",
+         width: columnWidth
+       })
+       .moveDown(lineHeight/50)
+       .text(invoice.billFrom?.address || "", rightColumnX, undefined, {
+         align: "right",
+         width: columnWidth
+       })
+       .moveDown(lineHeight/50)
+       .text(`${invoice.billFrom?.state || ""} - ${invoice.billFrom?.pincode || ""}`, rightColumnX, undefined, {
+         align: "right",
+         width: columnWidth
+       })
+       .moveDown(lineHeight/50)
+       .text(invoice.billFrom?.email || "", rightColumnX, undefined, {
+         align: "right",
+         width: columnWidth
+       });
 
-    let i = 0;
-    invoice.items.forEach((item) => {
-      const y = tableTop + 30 + (i * 20);
+    doc.moveDown(1.5);
 
-      if (y > doc.page.height - FOOTER_HEIGHT - 100) doc.addPage();
+   // ========== 3. Items Table ==========
+const tableTop = doc.y + 10;
+const columnPadding = 12; // Matches p-3 (0.75rem)
 
-      doc
-        .font("Helvetica")
-        .fontSize(10)
-        .text(item.name || "-", itemX, y)
-        .text(item.quantity || "1", qtyX, y, { width: 40, align: "right" })
-        .text(item.rate?.toFixed(2) || "0.00", rateX, y, { width: 60, align: "right" })
-        .text(item.total?.toFixed(2) || "0.00", amountX, y, { width: 60, align: "right" });
+// Corrected column definitions with proper cumulative positioning
+const columns = [
+  { 
+    name: "DESCRIPTION", 
+    width: 200,        // DESCRIPTION column width
+    x: MARGIN,         // Starts at left margin
+    align: "left",
+    padding: 12
+  },
+  { 
+    name: "QTY", 
+    width: 40,         // QTY column width
+    x: MARGIN + 200 + columnPadding,  // Previous width + padding
+    align: "right",
+    padding: 12
+  },
+  { 
+    name: `RATE (${invoice.currency || "INR"})`, 
+    width: 80,        // RATE column width
+    x: MARGIN + 200 + 40 + (columnPadding * 2), // Sum of previous widths + paddings
+    align: "right",
+    padding: 12
+  },
+  { 
+    name: `AMOUNT (${invoice.currency || "INR"})`, 
+    width: 100,        // AMOUNT column width
+    x: MARGIN + 200 + 60 + 80 + (columnPadding * 3), // Sum of all previous
+    align: "right",
+    padding: 12
+  }
+];
 
-      doc.moveTo(itemX, y + 15).lineTo(560, y + 15).strokeColor("#E5E7EB").stroke();
-      i++;
-    });
+// Table header with background color
+doc.fillColor("#eaf1fe")
+   .rect(MARGIN, tableTop, PAGE_WIDTH - (MARGIN * 2), 20)
+   .fill();
 
-    // ========== 4. Summary ==========
-    let currentY = tableTop + 30 + (i * 20) + 20;
-    if (currentY > doc.page.height - FOOTER_HEIGHT - 100) doc.addPage();
+// Draw header text with proper padding
+columns.forEach(col => {
+  doc.font("Helvetica-Bold")
+     .fontSize(10)
+     .fillColor("#374151")
+     .text(col.name, 
+       col.x + col.padding/2,  // Center text in cell with padding
+       tableTop + 5,           // Vertically center
+       {
+         width: col.width - col.padding, // Reduce width by padding
+         align: col.align,
+         characterSpacing: 0.5
+       }
+     );
+});
 
-    const rightAlign = (label, value, y) => {
-      doc
-        .font("Helvetica")
-        .fontSize(10)
-        .fillColor("black")
-        .text(label, 350, y, { width: 100, align: "right" })
-        .text(`${invoice.currency || "INR"} ${value.toFixed(2)}`, 460, y, { align: "right" });
-    };
-
-    rightAlign("Subtotal:", invoice.subtotal || 0, currentY);
-    if (invoice.cgst > 0) {
-      currentY += 15;
-      rightAlign(`CGST (${invoice.taxRate / 2}%)`, invoice.cgst, currentY);
-    }
-    if (invoice.sgst > 0) {
-      currentY += 15;
-      rightAlign(`SGST (${invoice.taxRate / 2}%)`, invoice.sgst, currentY);
-    }
-    if (invoice.igst > 0) {
-      currentY += 15;
-      rightAlign(`IGST (${invoice.taxRate}%)`, invoice.igst, currentY);
-    }
-
-    currentY += 20;
-    doc.rect(340, currentY, 210, 20).fill("#F9FAFB");
-    doc
-      .fillColor("black")
-      .font("Helvetica-Bold")
-      .text("Total:", 350, currentY + 5, { width: 100, align: "right" })
-      .text(`${invoice.currency || "INR"} ${(invoice.total || 0).toFixed(2)}`, 460, currentY + 5, { align: "right" });
-
-    // ========== 5. Notes ==========
-      if (invoice.notes || (Array.isArray(invoice.notesImage) && invoice.notesImage.length > 0)) {
-  let y = doc.y + 20;
-
-  if (y > doc.page.height - FOOTER_HEIGHT - 120) {
+// Table rows
+let tableCurrentY = tableTop + 20;
+(invoice.items || []).forEach((item, idx) => {
+  if (tableCurrentY > doc.page.height - FOOTER_HEIGHT - 30) {
     doc.addPage();
-    y = doc.y;
-  }
-
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(12)
-    .text("Additional Notes", 50, y);
-
-  y += 20;
-
-  if (invoice.notes) {
-    doc
-      .font("Helvetica")
-      .fontSize(10)
-      .text(invoice.notes, 50, y, {
-        width: 500,
-        align: "left"
-      });
-
-    y = doc.y + 20;
-  }
-
-  if (Array.isArray(invoice.notesImage)) {
-    const imageWidth = 120;
-    const imageHeight = 90;
-    const margin = 20;
-    let x = 50;
-
-    invoice.notesImage.forEach((imgData, idx) => {
-      if (y + imageHeight > doc.page.height - FOOTER_HEIGHT - 30) {
-        doc.addPage();
-        x = 50;
-        y = doc.y;
-      }
-
-      try {
-        const base64Data = imgData.split(",")[1];
-        const buffer = Buffer.from(base64Data, "base64");
-        doc.image(buffer, x, y, { width: imageWidth, height: imageHeight });
-
-        x += imageWidth + margin;
-        if (x + imageWidth > doc.page.width - 50) {
-          x = 50;
-          y += imageHeight + 20;
-        }
-      } catch (err) {
-        console.error("Failed to load notes image:", err.message);
-      }
+    tableCurrentY = MARGIN;
+    
+    // Redraw header on new page
+    doc.fillColor("#eaf1fe")
+       .rect(MARGIN, tableCurrentY, PAGE_WIDTH - (MARGIN * 2), 20)
+       .fill();
+    
+    columns.forEach(col => {
+      doc.font("Helvetica-Bold")
+         .fontSize(10)
+         .fillColor("#374151")
+         .text(col.name, 
+           col.x + col.padding/2,
+           tableCurrentY + 5,
+           {
+             width: col.width - col.padding,
+             align: col.align,
+             characterSpacing: 0.5
+           }
+         );
     });
+    
+    tableCurrentY += 20;
   }
-}
 
-    // ========== 6. Footer (Always on First Page) ==========
-    doc.switchToPage(0);
-    const footerY = doc.page.height - FOOTER_HEIGHT + 10;
+  // Draw row border if not first row
+  if (idx > 0) {
+    doc.moveTo(MARGIN, tableCurrentY)
+       .lineTo(PAGE_WIDTH - MARGIN, tableCurrentY)
+       .strokeColor("#E5E7EB")
+       .stroke();
+  }
 
-    doc
-      .fontSize(10)
-      .fillColor("#6B7280")
-      .text("Thank you for your business.", 0, footerY - 10, { align: "center" })
-      .text(`Generated on: ${new Date().toLocaleDateString()}`, {
-        align: "center"
+  // Draw cell content with proper padding
+  columns.forEach((col, colIdx) => {
+    let value;
+    switch(colIdx) {
+      case 0: value = item.name || "-"; break;
+      case 1: value = item.quantity?.toString() || "0"; break;
+      case 2: value = item.rate?.toFixed(2) || "0.00"; break;
+      case 3: value = item.total?.toFixed(2) || "0.00"; break;
+    }
+    
+    doc.font("Helvetica")
+       .fontSize(10)
+       .fillColor("#111827")
+       .text(value,
+         col.x + col.padding/2,
+         tableCurrentY + 5,
+         {
+           width: col.width - col.padding,
+           align: col.align
+         }
+       );
+  });
+
+  tableCurrentY += 20;
+});
+
+// Add rounded corners to table
+doc.roundedRect(MARGIN, tableTop, PAGE_WIDTH - (MARGIN * 2), tableCurrentY - tableTop, 4)
+   .strokeColor("#E5E7EB")
+   .stroke();
+
+doc.y = tableCurrentY + 16;
+
+    // ========== 4. Summary Section ==========
+const summaryWidth = 200; // Matches max-w-sm
+const summaryX = PAGE_WIDTH - MARGIN - summaryWidth; // Right-aligned (flex justify-end)
+// const lineHeight = 14; // Matches text-sm line height (removed duplicate declaration)
+
+// Start position with some spacing
+let currentY = doc.y + 20;
+
+// Helper function to add summary rows with proper styling
+const addSummaryRow = (label, value, isTotal = false) => {
+  // Set styles based on row type
+  doc.font(isTotal ? "Helvetica-Bold" : "Helvetica")
+     .fontSize(10) // text-sm
+     .fillColor(isTotal ? "#111827" : "#6B7280"); // text-gray-600 for regular, black for total
+  
+  // Label column (left-aligned)
+  doc.text(label, summaryX, currentY, {
+    width: summaryWidth - 90,
+    align: "left"
+  });
+  
+
+
+
+  // Value column (right-aligned)
+const valueText = isTotal 
+  ? `${invoice.currency} ${value.toFixed(2)}` // Total shows only one currency
+  : `${invoice.currency} ${value.toFixed(2)}`; // Others show both (can adjust as needed)
+  
+  doc.text(valueText, summaryX + summaryWidth - 90, currentY, {
+    width: 90,
+    align: "right"
+  });
+  
+  currentY += lineHeight;
+};
+
+
+
+// Ensure values exist
+invoice.subtotal = invoice.subtotal || 0;
+invoice.taxRate = invoice.taxRate || 0;
+
+// Compute CGST and SGST based on taxRate
+const halfTaxRate = invoice.taxRate / 2;
+invoice.cgst = parseFloat((invoice.subtotal * (halfTaxRate / 100)).toFixed(2));
+invoice.sgst = parseFloat((invoice.subtotal * (halfTaxRate / 100)).toFixed(2));
+invoice.igst = invoice.igst || 0; // Keep IGST optional if not used
+
+
+// Subtotal row
+addSummaryRow("Subtotal:", invoice.subtotal || 0);
+currentY += 4;
+
+// Always print tax rows, even if 0
+addSummaryRow(`CGST (${(invoice.taxRate / 2).toFixed(2)}%):`, invoice.cgst || 0);
+currentY += 2;
+addSummaryRow(`SGST (${(invoice.taxRate / 2).toFixed(2)}%):`, invoice.sgst || 0);
+currentY += 2;
+addSummaryRow(`IGST (${invoice.taxRate?.toFixed(2) || "0.00"}%):`, invoice.igst || 0);
+currentY += 2;
+
+const totalTax = invoice.cgst + invoice.sgst + invoice.igst;
+const total = invoice.subtotal + totalTax;
+
+// Total row with top border (border-t border-gray-300)
+currentY += 6; // Extra spacing before total line
+doc.moveTo(summaryX, currentY)
+   .lineTo(summaryX + summaryWidth, currentY)
+   .strokeColor("#D1D5DB") // border-gray-300
+   .stroke();
+
+currentY += 6; // Space after border
+addSummaryRow("Total:", total, true); // Bold total row
+
+// Add final spacing (matches mb-4)
+doc.y = currentY + 16;
+
+    // ========== 5. Notes Section ==========
+      let notesY = doc.y + 20;
+
+    if (invoice.notesImage && Array.isArray(invoice.notesImage)) {
+      invoice.notesImage.forEach(img => {
+        if (img && img.startsWith("data:image")) {
+          try {
+            // Check if we need a new page before adding image
+            if (notesY + 120 > doc.page.height - FOOTER_HEIGHT - 20) {
+              doc.addPage();
+              notesY = MARGIN;
+            }
+            
+            const base64Data = img.split(',')[1];
+            const buffer = Buffer.from(base64Data, 'base64');
+            doc.image(buffer, MARGIN, notesY, { width: 150, height: 100, align: 'left' });
+            notesY += 120;
+          } catch (err) {
+            console.error("Failed to load notes image:", err.message);
+          }
+        }
       });
+    }
+
+    if (invoice.notes) {
+      // Check if we need a new page before adding notes
+      if (notesY + 40 > doc.page.height - FOOTER_HEIGHT - 20) {
+        doc.addPage();
+        notesY = MARGIN;
+      }
+
+      doc.font("Helvetica-Bold")
+         .fontSize(12)
+         .fillColor("#374151")
+         .text("Additional Notes:", MARGIN, notesY)
+         .moveDown(0.5);
+
+      const notesHeight = doc.heightOfString(invoice.notes, {
+        width: PAGE_WIDTH - (MARGIN * 2),
+        lineGap: 4
+      });
+
+      // Check if notes will fit before adding them
+      if (notesY + notesHeight > doc.page.height - FOOTER_HEIGHT - 20) {
+        doc.addPage();
+        notesY = MARGIN;
+      }
+
+      doc.font("Helvetica")
+         .fontSize(10)
+         .fillColor("#374151")
+         .text(invoice.notes, MARGIN, doc.y, {
+           width: PAGE_WIDTH - (MARGIN * 2),
+           align: "left",
+           lineGap: 4
+         });
+    }
+
+    // ========== 6. Footer ==========
+    // Calculate current Y position after all content
+    const contentEndY = doc.y;
+    const footerY = Math.max(contentEndY + 20, doc.page.height - FOOTER_HEIGHT - 10);
+
+    // If footer would be pushed to next page, adjust content
+    if (footerY > doc.page.height - FOOTER_HEIGHT) {
+      // Move to next page and position footer at bottom
+      doc.addPage();
+      doc.moveTo(MARGIN, doc.page.height - FOOTER_HEIGHT - 10)
+         .lineTo(PAGE_WIDTH - MARGIN, doc.page.height - FOOTER_HEIGHT - 10)
+         .strokeColor("#E5E7EB")
+         .stroke();
+
+      doc.font("Helvetica")
+         .fontSize(8)
+         .fillColor("#6B7280")
+         .text(`Thank you for your business. Generated on: ${new Date().toLocaleDateString()}`, 
+               MARGIN, doc.page.height - FOOTER_HEIGHT, {
+                 align: "center",
+                 width: PAGE_WIDTH - (MARGIN * 2)
+               });
+    } else {
+      // Footer fits on current page
+      doc.moveTo(MARGIN, footerY - 10)
+         .lineTo(PAGE_WIDTH - MARGIN, footerY - 10)
+         .strokeColor("#E5E7EB")
+         .stroke();
+
+      doc.font("Helvetica")
+         .fontSize(8)
+         .fillColor("#6B7280")
+         .text(`Thank you for your business. Generated on: ${new Date().toLocaleDateString()}`, 
+               MARGIN, footerY, {
+                 align: "center",
+                 width: PAGE_WIDTH - (MARGIN * 2)
+               });
+    }
 
     doc.end();
-
-    stream.on("finish", () => resolve());
-    stream.on("error", (err) => reject(err));
+    stream.on('finish', () => resolve());
+    stream.on('error', (err) => reject(err));
   });
 };
 

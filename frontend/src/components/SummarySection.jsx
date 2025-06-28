@@ -1,11 +1,24 @@
 import React, { useState } from "react";
 import { currencySymbols } from "../utils/currency";
 
-const SummarySection = ({ subtotal, taxRate, setTaxRate, currency, cgst = 0, sgst = 0, igst = 0, labels }) => {
+const SummarySection = ({
+  subtotal,
+  taxRate,
+  setTaxRate,
+  currency,
+  cgst = 0,
+  sgst = 0,
+  igst = 0,
+  labels,
+  discount,
+  setDiscount,
+  shipping,
+  setShipping,
+}) => {
+
   const [showDiscount, setShowDiscount] = useState(false);
   const [showShipping, setShowShipping] = useState(false);
-  const [discount, setDiscount] = useState(0);
-  const [shipping, setShipping] = useState(0);
+ 
 
   const symbol = currencySymbols[currency] || currency;
 

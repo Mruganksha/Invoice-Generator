@@ -10,12 +10,7 @@ import { createInvoice, sendInvoiceEmail } from "../services/api";
 import { translations } from "../utils/translations";
 import { FaSpinner } from "react-icons/fa";
 
-/*
-  NOTE: There is a case sensitivity mismatch in your import.
-  Your file is named 'PDFPreview.jsx', but you may have imported it as '../components/PDFPreview' or '../components/PDFpreview'.
-  On case-sensitive file systems (like Linux), this will cause errors.
-  Make sure both the filename and the import statement use the exact same casing: 'PDFPreview'.
-*/
+
 
 const InvoiceForm = () => {
   const [invoiceDate, setInvoiceDate] = useState("");
@@ -33,8 +28,12 @@ const InvoiceForm = () => {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const invoiceRef = useRef();
   const [invoiceTitle, setInvoiceTitle] = useState("INVOICE");
-  const [notesImage, setNotesImage] = useState(null); // base64 or file
+  const [notesImage, setNotesImage] = useState([]); // base64 or file
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+  const [discountRate, setDiscountRate] = useState(0); // Add this at the top
+  const [discount, setDiscount] = useState(0);
+const [shipping, setShipping] = useState(0);
+
 
 
 
@@ -46,6 +45,28 @@ const [igst, setIgst] = useState(0);
  const [showPDFPreview, setShowPDFPreview] = useState(false);
  
   const pdfPreviewRef = useRef();
+
+  const computeInvoiceValues = () => {
+  const taxAmount = subtotal * (taxRate / 100);
+  const isInterstate = billFrom.state.trim().toLowerCase() !== billTo.state.trim().toLowerCase();
+  const discountAmount = (discountRate / 100) * subtotal;
+
+  const cgstValue = !isInterstate ? taxAmount / 2 : 0;
+  const sgstValue = !isInterstate ? taxAmount / 2 : 0;
+  const igstValue = isInterstate ? taxAmount : 0;
+
+  const total = subtotal - discount + cgst + sgst + igst + shipping;
+
+
+  return {
+    taxAmount,
+    discountAmount,
+    total,
+    cgst: cgstValue,
+    sgst: sgstValue,
+    igst: igstValue,
+  };
+};
 
 
 
@@ -153,10 +174,14 @@ const handleSaveToBackend = async () => {
     billTo,
     items,
     notes,
+    notesImage,
+    discountRate,
     currency,
     subtotal,
     taxRate,
-    taxAmount: subtotal * (taxRate / 100),
+    cgst,
+    igst,
+    sgst,
     total: subtotal + subtotal * (taxRate / 100),
   };
 
@@ -175,6 +200,8 @@ const handleBackendPDFDownload = async () => {
     alert("Please fill all required fields before saving.");
     return;
   }
+   
+  const { taxAmount, discountAmount, total, cgst, sgst, igst } = computeInvoiceValues();
 
   setIsDownloadingPDF(true); // Start loader
   try {
@@ -191,7 +218,10 @@ const handleBackendPDFDownload = async () => {
       currency,
       subtotal,
       taxRate,
-      taxAmount: subtotal * (taxRate / 100),
+      cgst,
+      sgst,
+      igst,
+      discountRate,
       total: subtotal + subtotal * (taxRate / 100),
     };
 
@@ -387,7 +417,12 @@ const cleanedItems = items.map(item => ({
   sgst={sgst}
   igst={igst}
   labels={currentLang}
+  discount={discount}
+  setDiscount={setDiscount}
+  shipping={shipping}
+  setShipping={setShipping}
 />
+
 
         </div>
       </div>
